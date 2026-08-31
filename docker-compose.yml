@@ -1,0 +1,43 @@
+services:
+  bot:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://school:${POSTGRES_PASSWORD:-school}@database:5432/school_payments
+      RECEIPTS_ROOT: /data/receipts
+      APP_ENV: production
+      SEED_ON_START: "true"
+      MAX_CA_BUNDLE: /app/certs/russian_trusted_root_ca.pem
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - receipts:/data/receipts
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: school_payments
+      POSTGRES_USER: school
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-school}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U school -d school_payments"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  receipts:

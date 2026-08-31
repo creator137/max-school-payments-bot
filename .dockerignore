@@ -1,0 +1,11 @@
+.git
+.env
+.venv
+__pycache__
+.pytest_cache
+.coverage
+school_payments.db
+storage/receipts
+backups
+tests
+
