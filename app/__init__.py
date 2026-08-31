@@ -1,0 +1,1 @@
+"""MAX school payments bot."""
