@@ -28,6 +28,10 @@ uv run python -m app.cli poll
 Long polling и webhook одновременно использовать нельзя. Перед переключением
 удалите существующую MAX subscription, если она есть.
 
+`MAX_DELIVERY_MODE=polling` запускает polling вместе с HTTP healthcheck и
+scheduler. После появления публичного HTTPS-домена установите `webhook` и
+зарегистрируйте subscription командой `subscribe`.
+
 Mock-коды: `7L1-4827` (Алиса), `7L1-1593` (Тимур), `7L1-7316` (Мария).
 Seed выполняется только для пустой таблицы родителей.
 

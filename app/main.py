@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -9,7 +10,7 @@ from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
 from app.config import get_settings
 from app.db import SessionFactory, engine
 from app.handlers import BotHandler
-from app.max_api import MaxClient
+from app.max_api import MaxClient, poll_forever
 from app.models import Base
 from app.reminders import PaymentReminderService
 from app.seed import seed_mock_data
@@ -31,6 +32,7 @@ scheduler = AsyncIOScheduler(timezone=settings.app_timezone)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    poll_task: asyncio.Task[None] | None = None
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     if settings.seed_on_start:
@@ -42,7 +44,16 @@ async def lifespan(app: FastAPI):
             reminders.run, "cron", hour=9, minute=0, id="payment-reminders", replace_existing=True
         )
         scheduler.start()
+    if settings.max_delivery_mode == "polling":
+        poll_task = asyncio.create_task(poll_forever(handler, client), name="max-long-polling")
+        logger.info("MAX long polling started")
     yield
+    if poll_task:
+        poll_task.cancel()
+        try:
+            await poll_task
+        except asyncio.CancelledError:
+            pass
     if scheduler.running:
         scheduler.shutdown(wait=False)
     await client.close()

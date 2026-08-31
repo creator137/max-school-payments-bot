@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     receipts_root: Path = Path("storage/receipts")
     reminder_days: Annotated[list[int], NoDecode] = [1, 5, 10]
     scheduler_enabled: bool = True
+    max_delivery_mode: str = "polling"
     seed_on_start: bool = True
     log_level: str = "INFO"
 
@@ -52,6 +53,14 @@ class Settings(BaseSettings):
     @classmethod
     def parse_bot_id(cls, value: object) -> object:
         return 437985824 if value in (None, "") else value
+
+    @field_validator("max_delivery_mode")
+    @classmethod
+    def validate_delivery_mode(cls, value: str) -> str:
+        value = value.lower()
+        if value not in {"polling", "webhook"}:
+            raise ValueError("MAX_DELIVERY_MODE must be polling or webhook")
+        return value
 
     @field_validator("max_admin_ids", mode="before")
     @classmethod

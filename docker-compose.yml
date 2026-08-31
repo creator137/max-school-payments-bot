@@ -6,6 +6,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://school:${POSTGRES_PASSWORD:-school}@database:5432/school_payments
       RECEIPTS_ROOT: /data/receipts
       APP_ENV: production
+      MAX_DELIVERY_MODE: ${MAX_DELIVERY_MODE:-polling}
       SEED_ON_START: "true"
       MAX_CA_BUNDLE: /app/certs/russian_trusted_root_ca.pem
     ports:
