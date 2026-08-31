@@ -42,8 +42,12 @@ def message(user_id: int, text: str = "", attachments=None):
 def callback(user_id: int, payload: str):
     return {
         "update_type": "message_callback",
-        "user": {"user_id": user_id},
-        "callback": {"callback_id": f"cb-{payload}", "payload": payload},
+        "callback": {
+            "callback_id": f"cb-{payload}",
+            "payload": payload,
+            "user": {"user_id": user_id},
+        },
+        "message": {"sender": {"user_id": 437985824, "is_bot": True}},
     }
 
 

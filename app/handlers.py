@@ -60,13 +60,11 @@ class BotHandler:
     @staticmethod
     def _user_id(update: dict[str, Any]) -> int | None:
         message = update.get("message") or {}
-        sender = (
-            message.get("sender")
-            or update.get("user")
-            or update.get("callback", {}).get("user")
-            or {}
-        )
-        return sender.get("user_id")
+        if update.get("update_type") == "message_callback":
+            user = update.get("callback", {}).get("user") or update.get("user") or {}
+        else:
+            user = message.get("sender") or update.get("user") or {}
+        return user.get("user_id")
 
     async def _message(self, update: dict[str, Any]) -> None:
         user_id = self._user_id(update)

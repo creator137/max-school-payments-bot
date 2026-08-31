@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 from pathlib import Path
 from typing import Any, Protocol
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 
 class MaxAPIError(RuntimeError):
@@ -141,11 +144,17 @@ async def poll_forever(
         try:
             result = await client.get_updates(marker)
             for update in result.get("updates", []):
-                await handler.handle(update)
+                try:
+                    await handler.handle(update)
+                except Exception:
+                    logger.exception(
+                        "Failed to process MAX update type=%s", update.get("update_type")
+                    )
             next_marker = result.get("marker")
             if next_marker is not None:
                 marker = int(next_marker)
                 if cursor_store:
                     await cursor_store.save(marker)
         except Exception:
+            logger.exception("MAX polling iteration failed")
             await asyncio.sleep(3)
