@@ -122,3 +122,9 @@ class ReminderLog(Base):
     payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id"), index=True)
     reminder_day: Mapped[int] = mapped_column(Integer)
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now)
+
+
+class AppSetting(Base):
+    __tablename__ = "app_settings"
+    key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)

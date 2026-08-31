@@ -14,6 +14,7 @@ from app.max_api import MaxClient, poll_forever
 from app.models import Base
 from app.reminders import PaymentReminderService
 from app.seed import seed_mock_data
+from app.services.cursor import SQLAlchemyCursorStore
 from app.storage import LocalReceiptStorage
 
 settings = get_settings()
@@ -45,7 +46,10 @@ async def lifespan(app: FastAPI):
         )
         scheduler.start()
     if settings.max_delivery_mode == "polling":
-        poll_task = asyncio.create_task(poll_forever(handler, client), name="max-long-polling")
+        cursor_store = SQLAlchemyCursorStore(SessionFactory)
+        poll_task = asyncio.create_task(
+            poll_forever(handler, client, cursor_store), name="max-long-polling"
+        )
         logger.info("MAX long polling started")
     yield
     if poll_task:

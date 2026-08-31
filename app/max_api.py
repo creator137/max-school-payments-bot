@@ -3,13 +3,19 @@ from __future__ import annotations
 import asyncio
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 import httpx
 
 
 class MaxAPIError(RuntimeError):
     pass
+
+
+class CursorStore(Protocol):
+    async def load(self) -> int | None: ...
+
+    async def save(self, marker: int) -> None: ...
 
 
 class MaxClient:
@@ -127,13 +133,19 @@ class MaxClient:
         )
 
 
-async def poll_forever(handler: Any, client: MaxClient) -> None:
-    marker: int | None = None
+async def poll_forever(
+    handler: Any, client: MaxClient, cursor_store: CursorStore | None = None
+) -> None:
+    marker = await cursor_store.load() if cursor_store else None
     while True:
         try:
             result = await client.get_updates(marker)
             for update in result.get("updates", []):
                 await handler.handle(update)
-            marker = result.get("marker", marker)
+            next_marker = result.get("marker")
+            if next_marker is not None:
+                marker = int(next_marker)
+                if cursor_store:
+                    await cursor_store.save(marker)
         except Exception:
             await asyncio.sleep(3)

@@ -10,6 +10,7 @@ from app.max_api import MaxClient, poll_forever
 from app.models import Base
 from app.reminders import PaymentReminderService
 from app.seed import seed_mock_data
+from app.services.cursor import SQLAlchemyCursorStore
 from app.storage import LocalReceiptStorage
 
 
@@ -31,7 +32,7 @@ async def main_async(command: str) -> None:
             handler = BotHandler(
                 SessionFactory, client, LocalReceiptStorage(settings.receipts_root), settings
             )
-            await poll_forever(handler, client)
+            await poll_forever(handler, client, SQLAlchemyCursorStore(SessionFactory))
         elif command == "check-max":
             client = MaxClient(settings.max_token, settings.max_api_base_url, settings.max_verify)
             me = await client.get_me()
