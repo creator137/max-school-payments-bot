@@ -10,7 +10,7 @@ services:
       SEED_ON_START: "true"
       MAX_CA_BUNDLE: /app/certs/russian_trusted_root_ca.pem
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${BOT_HOST_PORT:-18001}:8000"
     volumes:
       - receipts:/data/receipts
     restart: unless-stopped

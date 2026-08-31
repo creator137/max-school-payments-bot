@@ -92,7 +92,7 @@ volumes, включает healthcheck и `restart: unless-stopped`:
 ```bash
 docker compose up -d --build
 docker compose ps
-curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:18001/health
 ```
 
 Порт 8000 доступен только на localhost. Перед ним нужен HTTPS reverse proxy на
